@@ -1,0 +1,51 @@
+/* Subgroup membership testings on BW10-511. This curve comes from the Cyclo(6.6)-k10 family.*/
+
+x:=2^7+2^13+2^26-2^32;  
+r:=x^8+x^7-x^5-x^4-x^3+x+1;
+t:=x^3+1;
+p:=(x^3-1)^2*(x^10-x^5+1)div 3 +x^3;
+Fp:=GF(p);
+F5<u>:=ExtensionField<Fp,u|u^5+4>;
+F10<v>:=ExtensionField<F5,v|v^2-u>;
+E:=EllipticCurve([F10|0,-3]);
+E1:=EllipticCurve([Fp|0,-3]);
+Et:=EllipticCurve([F5|0,-3/u^3]);
+h1:=(p+1-t) div r;
+h2:=#Et div r;
+W:=1157899333272590462573976013250064869723630379910219999449010048615785013535770884787331758585706262669165977120498436109785196144383978256105719169395313;
+f:=3*5*7*19*61*74172809*103039397557*18033575676307*13953720972139393*290785498341800690827267;
+assert (t-3*f) mod 2 eq 0;
+tr_psi:=-(t-3*f) div 2;
+lambda_g1:=-x^10-1;
+lambda_g2:=x^10;
+
+function aut(Q,i)
+         R:=E![Q[1]*v^2,Q[2]*v^3,1];
+         R:=E![Frobenius(R[1],Fp,i),Frobenius(R[2],Fp,i),1];
+         R:=E![W^i*R[1], R[2],1];
+         R:=Et![R[1]/v^2, R[2]/v^3,1];
+        return R;
+end function;
+
+/*G1 testing*/
+a1:=x^3+x^2-1; a0:=x*a1-1;
+assert (a0+a1*lambda_g1) mod r eq 0;
+
+P:=h1*Random(E1);
+P1:=E1![W^2*P[1],P[2],1]-tr_psi*E1![W*P[1],P[2],1]+p*P;
+assert P1[3] eq 0;
+R:=a0*P+a1*E1![W*P[1],P[2],1];
+if R[3] eq 0 then
+   printf("G1 testing is correct!\n");
+else
+   printf("G1 testing is ERROR!\n");
+end if;
+
+/*G2 testing:[1,0,-x-1,-1,0,0,1,1]*/
+Q:=h2*Random(Et);
+R:=Q-(x+1)*aut(Q,2)-aut(Q,3)+aut(Q,6)+aut(Q,7);
+if R[3] eq 0 then
+   printf("G2 testing is correct!\n");
+else
+   printf("G2 testing is ERROR!\n");
+end if;

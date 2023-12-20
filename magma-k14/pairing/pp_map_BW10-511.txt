@@ -1,0 +1,149 @@
+/*Computing the optimal pairing on BW10-511. This curve comes from the Cyclo(6.6)-k10 family. The formula of the optimal pairing is given by
+
+e(Q,P)=(f^{1+x*p^3}_{x,Q}*f_{x,Q}(\hat\tau(P))*(y_P-y_Q)^{p^7})^{p^{10-1}/r}, where Q\in G2, P\in G1.
+
+*/
+x:=2^7+2^13+2^26-2^32;  
+r:=x^8+x^7-x^5-x^4-x^3+x+1;
+t:=x^3+1;
+p:=(x^3-1)^2*(x^10-x^5+1)div 3 +x^3;
+Fp:=GF(p);
+F5<u>:=ExtensionField<Fp,u|u^5+4>;
+F10<v>:=ExtensionField<F5,v|v^2-u>;
+E:=EllipticCurve([F10|0,-3]);
+E1:=EllipticCurve([Fp|0,-3]);
+Et:=EllipticCurve([F5|0,-3/u^3]);
+cof1:=(p+1-t) div r;
+cof2:=#Et div r;
+W:=1157899333272590462573976013250064869723630379910219999449010048615785013535770884787331758585706262669165977120498436109785196144383978256105719169395313;
+f:=3*5*7*19*61*74172809*103039397557*18033575676307*13953720972139393*290785498341800690827267;
+assert (t-3*f) mod 2 eq 0;
+tr_psi:=-(t-3*f) div 2;
+lambda_g1:=-x^5;
+lambda_g2:=x^5-1;
+a:=[0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,-1,0,0,0,0,0,0,0];
+
+pp_dbl:=function(r,p1,p2)
+    t0:=r[1]^2; t1:=2*t0; t0:=t0+t1;
+    t1:=t0*r[1];t2:=t1/2;t3:=t2/2;t3:=t2+t3;
+    t4:=r[2]^2;t5:=2*t4;t6:=t5-t2;
+    u0:=t3*t6; u1:=t4^2;t2:=r[3]^2;r[3]:=r[2]*r[3];
+    r[2]:=u0-u1;t6:=t3-t5;r[1]:=r[1]*t6;
+
+    t3:=2*p1[2];t3:=t3*r[3];t3:=t3*t2;
+    t4:=t1-t5;t5:=t2*t0;t0:=t5*p1[1];
+    t1:=t5*p2[1];
+
+    l1:=t3-t0*v+t4*v^3;l2:=t3-t1*v+t4*v^3;
+
+    return l1,l2,r;
+end function;
+
+pp_add:=function(r,q,p1,p2)
+    t0:=r[3]^2;t1:=q[2]*t0;t1:=t1*r[3];
+    t1:=t1-r[2];t2:=q[1]*t0;t2:=t2-r[1];
+    t0:=t2^2;t3:=t2*t0;t4:=r[1]*t0;
+    r[1]:=t1^2;t0:=2*t4;r[1]:=r[1]-t0;
+    r[1]:=r[1]-t3;
+
+    t0:=t4-r[1];u0:=t0*t1;
+    u1:=r[2]*t3;r[2]:=u0-u1;r[3]:=r[3]*t2;
+    t0:=r[3]*p1[2]; t2:=t1*p1[1];t3:=t1*p2[1];
+    u0:=t1*q[1];u1:=q[2]*r[3];t4:=u0-u1;
+
+    l1:=t0-t2*v+t4*v^3;l2:=t0-t3*v+t4*v^3;
+
+ return l1,l2,r;
+end function;
+
+Miller10:=function(q,p1,p2,a)
+    /*compute f_{x,Q}(P) and store all line functions required for computing f_{x,Q}(\hat\tau(P)) */
+    f1:=1;f2:=1; tab:=[];
+    r:=[q[1],q[2],q[3]];
+    for i:= 1 to #a do
+        l1,l2,r:=pp_dbl(r,p1,p2);
+        f1:=f1^2;f1:=f1*l1;
+        Append(~tab, l2); 
+
+        if a[i] eq 1 then 
+            l1,l2,r:=pp_add(r,q,p1,p2);
+            f1:=f1*l1; Append(~tab, l2);   
+        end if;
+
+        if a[i] eq -1 then
+            l1,l2,r:=pp_add(r,-q,p1,p2); 
+            f1:=f1*l1; Append(~tab, l2); 
+        end if;
+    end for;
+    f1:=1/f1;
+   
+   /*computing f^{p^{3}}_{x,Q}(P)*f_{x,Q}(\hat\tau(P)) */
+   g:=Frobenius(f1, Fp, 3);h:=g;j:=1;
+   for i:= 1 to #a do
+      h:=h^2*tab[j]; j:=j+1;
+      if a[i] eq 1 then 
+            h:=h*g*tab[j]; j:=j+1; 
+      end if;
+
+      if a[i] eq -1 then
+           h:=h*tab[j]/g; j:=j+1; 
+      end if;
+   end for;
+  h:=1/h;
+
+  /*the final line*/
+  l:=p1[2]-q[2]*v^3;
+  l:=Frobenius(l, Fp, 7);
+
+  /*computing f^{1+x*p^{3}}_{x,Q}(P)*f_{x,Q}(\hat\tau(P))*(y_P-y_Q)^(p^7)*/
+  f:=f1*l*h;
+return f;
+end function;
+
+expk10:=function(f)
+    /*easy part*/
+    f:=Frobenius(f, Fp, 5)/f;
+    f:=Frobenius(f, Fp, 1)*f;
+
+    /*hard part*/
+    f1:=f^(x^6-2*x^3+1);
+    f2:=f1^x;
+    f3:=f2^(x^2);
+    f4:=f3^x;
+    f5:=f4^x;
+    f6:=f5^(x^2)*f^3;
+    f7:=f6^x/f3;
+    f8:=f5/(f1);
+    f8:=Frobenius(f8, Fp, 4)*Frobenius(f7, Fp, 3);
+    h:=f6*Frobenius(f4, Fp, 1)*Frobenius(f2, Fp, 2);
+    h:=f8/h;
+    return h;
+end function;
+
+pp_map:=function(q,p1)
+    p2:=E1![W^2*p1[1], p1[2], 1];
+    f:=Miller10(q, p1, p2, a);    
+    f:=expk10(f);
+return f;
+end function;
+
+/******testing*******/
+p1:=cof1*Random(E1);
+q1:= cof2*Random(Et);
+s:=Random(1,r-1);
+ps:=s*p1;qs:=s*q1;
+e1:=pp_map(q1,ps);
+e2:=pp_map(qs,p1);
+
+
+if e1 ne 1 then
+   printf"pairing is non-degenerate!\n";
+else 
+printf"ERROR: pairing is degenerate!\n";
+end if;
+
+if e1  eq e2 then
+   printf"pairing is bilinear!\n";
+else 
+printf"ERROR: pairing is NOT bilinear!\n";
+end if;

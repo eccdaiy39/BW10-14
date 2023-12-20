@@ -1,0 +1,25 @@
+/*Cofator multiplication for G1 on BW14-382. This curve comes from the Cyclo(6.3)-k14 family.
+
+*/
+x:=2565121;
+r:=x^12-x^10+x^8-x^6+x^4-x^2+1;
+t:=1+x^2;
+p:=(x^18-2*x^16+x^14+x^4+2*x^2+1) div 4;
+Fp:=GF(p);
+E1:=EllipticCurve([Fp|1,0]);
+W:=4506128361793112414031596301001191791829240001521837523639000497831654632776289077711270335522484434220968961;
+m:=x^2-1;
+
+
+/**the short vector (a0,a1)=(x,1)***
+checking that [m]([a0]*P+[a1]*\tau(P))=0;
+**/
+P:= Random(E1);
+P1:=(x^2-1)*Random(E1);
+P2:=x*P1+E1![-P1[1],W*P1[2],1];
+R:=r*P2;
+if R[3] eq 0 then 
+   printf("G1 cofactor multiplication is correct!\n");
+else
+   printf("G1 cofactor multiplication is ERROR!\n");
+end if;

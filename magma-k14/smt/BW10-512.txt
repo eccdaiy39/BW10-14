@@ -1,0 +1,52 @@
+/* Subgroup membership testings on BW10-512. This curve comes from the Cyclo(6.3)-k10 family.*/
+x:=2^36+2^35+2^32+2^17+2^3+1;
+r:=x^8-x^6+x^4-x^2+1;
+t:=x^2+1;
+p:=(x^14-2*x^12+x^10+x^4+2*x^2+1) div 4;
+Fp:=GF(p);
+F5<u>:=ExtensionField<Fp,u|u^5+17>;
+F10<v>:=ExtensionField<F5,v|v^2-u>;
+E:=EllipticCurve([F10|1,0]);
+E1:=EllipticCurve([Fp|1,0]);
+Et:=EllipticCurve([F5|1*u^2,0]);
+//Random(Fp)^((p-1) div 4);
+W:=6769328813942079654333316763935716746190825161292163458641640393244403681016084552862596353325722753947259613383148378880004522927957911129882072346161480;
+h1:=(p+1-t) div r;
+h2:=#Et div r;
+lambda_g1:=x^5;
+lambda_g2:=-x^5;
+P:=Random(E1);
+//Factorization(t^2-4*p);
+f:=2^4*3^5*5*7^2*137^5*419*617*1531^5*3119*41081*88789*170641^5;
+tr_psi:=-f;
+//-P-tr_psi*E1![-P[1],W*P[2],1]+p*P;
+
+function aut(Q,i)
+         R:=E![Q[1]/v^2,Q[2]/v^3,1];
+         R:=E![Frobenius(R[1],Fp,i),Frobenius(R[2],Fp,i),1];
+         R:=E![(-1)^i*R[1], (W)^(i)*R[2],1];
+         R:=Et![R[1]*v^2, R[2]*v^3,1];
+        return R;
+end function;
+
+/*G1 testing*/
+a0:=x^3-x;a1:=-(a0*x+1);
+assert (a0+a1*lambda_g1) mod r eq 0;
+
+P:=h1*Random(E1);
+R:=a0*P+a1*E1![-P[1],W*P[2],1];
+if R[3] eq 0 then
+   printf("G1 testing is correct!\n");
+else
+   printf("G1 testing is ERROR!\n");
+end if;
+
+/*G2 testing:[0, 1, 0, x-1,0, 1, -(x-1), -1]*/
+Q:=h2*Random(Et);
+
+R:=aut(Q,1)+(x-1)*aut(Q,3)+aut(Q,5)-(x-1)*aut(Q,6)-aut(Q,7);
+if R[3] eq 0 then
+   printf("G2 testing is correct!\n");
+else
+   printf("G2 testing is ERROR!\n");
+end if;

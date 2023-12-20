@@ -1,0 +1,95 @@
+//*VectorG1 function is used for finding out a short vector for G1 membership testing*//
+function VectorG1(r,lambda, D, h1,v)
+    B:=RMatrixSpace(Integers(), 2,2)![r,0,-lambda,1];
+    L:= LatticeWithBasis(B);
+    S:=ShortestVectors(L);
+    for i:=1 to #S do
+        C:=S[i];
+        if GCD(C[1]^2-(D mod 2)*C[1]*C[2]+C[2]^2, h1*r) eq r then
+            return C;
+        end if;
+    end for;
+    min:=Norm(ShortestVector(L));max:=v*min;
+    V:=ShortVectorsProcess(L, min, max);
+    repeat
+        C:=NextVector(V);
+        if Norm(C) eq 0  then
+            return "Please reselect the value of max";
+        end if;
+    until GCD(C[1]^2-(D mod 2)*C[1]*C[2]+C[2]^2, h1*r) eq r;
+     return C;
+end function;
+
+//*************************************Curve parmamters*************************//
+printf("BW10-512:\n");
+x:=2^36+2^35+2^32+2^17+2^3+1;
+r:=x^8-x^6+x^4-x^2+1;
+t:=x^2+1;
+p:=(x^14-2*x^12+x^10+x^4+2*x^2+1) div 4;
+lambda_g1:=x^5;
+h1:=(p+1-t) div r;
+D:=-4;
+v:=1;
+lambda_g1:=x^5;
+VectorG1(r,lambda_g1, D, h1,v);
+
+
+printf("BW10-480:\n");
+x:=1168231415840;
+r:=x^8-x^6+x^4-x^2+1;
+t:=-x^6+x^4-x^2+2;
+p:=(x^12-x^10+x^8-5*x^6+5*x^4-4*x^2+4) div 4;
+h1:=(p+1-t) div r;
+D:=-4;
+v:=1;
+lambda_g1:=x^5;
+VectorG1(r,lambda_g1, D, h1,v);
+
+printf("BW10-511:\n");
+x:=2^7+2^13+2^26-2^32;  
+r:=x^8+x^7-x^5-x^4-x^3+x+1;
+t:=x^3+1;
+p:=(x^3-1)^2*(x^10-x^5+1)div 3 +x^3;
+h1:=(p+1-t) div r;
+D:=-3;
+v:=1;
+lambda_g1:=-x^10-1;
+VectorG1(r,lambda_g1, D, h1,v);
+
+
+printf("BW14-382:\n");
+x:=2565121;
+r:=x^12-x^10+x^8-x^6+x^4-x^2+1;
+t:=1+x^2;
+p:=(x^18-2*x^16+x^14+x^4+2*x^2+1) div 4;
+h1:=(p+1-t) div r;
+D:=-4;
+v:=1;
+lambda_g1:=x^7;
+VectorG1(r,lambda_g1, D, h1,v);
+
+
+
+printf("BW14-340:\n");
+x:=2^2+2^7+2^9-2^13+2^19+2^21;
+r:=x^12 + x^11 - x^9 - x^8 + x^6 - x^4 - x^3 + x + 1;
+t:=x^8-x+1;
+p:=(x-1)^2*(x^14-x^7+1) div 3+x^15;
+h1:=(p+1-t) div r;
+D:=-3;
+v:=1;
+lambda_g1:=x^14;
+VectorG1(r,lambda_g1, D, h1,v);
+
+printf("BW14-351:\n");
+x:=-4214720;
+r:=x^12 + x^11 - x^9 - x^8 + x^6 - x^4 - x^3 + x + 1;
+t:=x^8-x+1;
+p:=(x-1)^2*(x^14-x^7+1) div 3+x^15;
+h1:=(p+1-t) div r;
+D:=-3;
+v:=1;
+lambda_g1:=x^14;
+VectorG1(r,lambda_g1, D, h1,v);
+
+

@@ -1,0 +1,51 @@
+/* Subgroup membership testings on BW14-351. This curve comes from the Cyclo(6.6)-k14 family.*/
+
+x:=-4214720;
+r:=x^12 + x^11 - x^9 - x^8 + x^6 - x^4 - x^3 + x + 1;
+f:=(x^8+2*x^7+x-1) div 3;
+t:=x^8-x+1;
+p:=(x-1)^2*(x^14-x^7+1) div 3+x^15;
+W:=1568337429996157785448902759040775882471469027339805458632646054240040294212431\
+467204802397705710187;
+assert -(t-3*f) mod 2 eq 0;
+tr_psi:=-(t-3*f) div 2;
+lambda_g1:=x^14;
+lambda_g2:=-x^14-1;
+Fp:=GF(p);
+F7<u>:=ExtensionField<Fp,u|u^7-2>;
+F14<v>:=ExtensionField<F7,v|v^2-u>;
+E:=EllipticCurve([F14|0,3]);
+E1:=EllipticCurve([Fp|0,3]);
+Et:=EllipticCurve([F7|0,3/u^3]);
+h1:=(p+1-t) div r;
+h2:=#Et div r;
+function aut(Q,i)
+         R:=E![v^2*Q[1],v^3*Q[2],1];
+         R:=E![Frobenius(R[1],Fp,i),Frobenius(R[2],Fp,i),1];
+         R:=E![(W)^(i)*R[1], R[2],1];
+         R:=Et![R[1]/v^2, R[2]/v^3,1];
+        return R;
+end function;
+/*G1 testing*/
+a0:=(x^5+x^4)-(x^2+x);a1:=-1-(x-1)*a0;
+assert GCD((a0+a1*lambda_g1), (p+1-t)) -r eq 0;
+P:=h1*Random(E1);
+R:=a0*P+a1*E1![W*P[1],P[2],1];
+if R[3] eq 0 then
+   printf("G1 testing is correct!\n");
+else
+   printf("G1 testing is ERROR!\n");
+end if;
+
+/*G2 testing:[1,1,0,-1, -1, 0, 1, 0, -1, -1, 0,x+1]*/
+Q:=h2*Random(Et);
+R:=Q+aut(Q,1)-aut(Q,3)-aut(Q,4)+aut(Q,6)-aut(Q,8)-aut(Q,9)+(x+1)*aut(Q,11);
+if R[3] eq 0 then
+   printf("G2 testing is correct!\n");
+else
+   printf("G2 testing is ERROR!\n");
+end if;
+
+
+
+

@@ -1,0 +1,87 @@
+function VectorGT(r,p,k,ht,v)
+    u:=EulerPhi(k);
+    B:=RMatrixSpace(Integers(), u,u)!0;
+    B[1][1]:=r;
+    for i:=2 to u do
+        B[i][1]:=-p^(i-1);B[i][i]:=1;
+    end for;
+    L:= LatticeWithBasis(B);
+    S:=ShortestVectors(L);
+    for i:=1 to #S do
+        C:=S[i];
+        b:=0;
+        for j:=1 to u do
+            b:=(b+C[j]*p^(j-1));
+        end for;
+        htd:= b div r;
+        if GCD(ht,htd) eq 1 then        
+            return C;
+        end if;
+    end for;
+    min:=Norm(ShortestVector(L));max:=v*min;
+    V:=ShortVectorsProcess(L, min, max);
+    repeat
+        C:=NextVector(V);
+        if Norm(C) eq 0 then
+            return "Please reselect the value of v";
+        end if;
+        b:=0;
+        for j:=1 to u do
+            b:=(b+C[j]*p^(j-1));
+        end for;
+        htd:= b div r;
+    until GCD(ht,htd) eq 1;
+    return C;
+end function;
+
+//*************************************Curve parmamters*************************//
+printf("cyc(6.3)-k10\n");
+x:=2^36+2^35+2^32+2^17+2^3+1;
+r:=x^8-x^6+x^4-x^2+1;
+t:=x^2+1;
+p:=(x^14-2*x^12+x^10+x^4+2*x^2+1) div 4;
+v:=2;
+k:=10;
+ht:=(p^5+1) div ((p+1*r));
+VectorGT(r,p,k,ht,v);
+
+
+printf("cyc(6.3)-k14\n");
+x:=2565121;
+r:=x^12-x^10+x^8-x^6+x^4-x^2+1;
+t:=1+x^2;
+p:=(x^18-2*x^16+x^14+x^4+2*x^2+1) div 4;
+v:=2;
+k:=14;
+ht:=(p^7+1) div ((p+1*r));
+VectorGT(r,p,k,ht,v);
+
+printf("cyc(6.5)-k10\n");
+x:=1168231415840;
+r:=x^8-x^6+x^4-x^2+1;
+t:=-x^6+x^4-x^2+2;
+p:=(x^12-x^10+x^8-5*x^6+5*x^4-4*x^2+4) div 4;
+v:=1;
+k:=10;
+ht:=(p^5+1) div ((p+1*r));
+VectorGT(r,p,k,ht,v);
+
+printf("cyc(6.6)-k10\n");
+x:=2^7+2^13+2^26-2^32;  
+r:=x^8+x^7-x^5-x^4-x^3+x+1;
+t:=x^3+1;
+p:=(x^3-1)^2*(x^10-x^5+1)div 3 +x^3;
+v:=1;
+k:=10;
+ht:=(p^5+1) div ((p+1*r));
+VectorGT(r,p,k,ht,v);
+
+printf("cyc(6.6)-k14\n");
+x:=2^2+2^7+2^9-2^13+2^19+2^21;
+r:=x^12 + x^11 - x^9 - x^8 + x^6 - x^4 - x^3 + x + 1;
+t:=x^8-x+1;
+p:=(x-1)^2*(x^14-x^7+1) div 3+x^15;
+v:=2;
+k:=14;
+ht:=(p^7+1) div ((p+1*r));
+VectorGT(r,p,k,ht,v);

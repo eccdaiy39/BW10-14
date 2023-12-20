@@ -1,0 +1,54 @@
+//*VectorG1 function is used for G1 cofactor multiplication*//
+function VectorG1(n,s)
+    B:=RMatrixSpace(Integers(), 2,2)![n,0,-s,1];
+    L:= LatticeWithBasis(B);
+    S:=ShortestVector(L);
+    return S;
+end function;
+
+//*************************************Curve parmamters*************************//
+
+
+printf("BW10-512:\n");
+x:=2^36+2^35+2^32+2^17+2^3+1;
+r:=x^8-x^6+x^4-x^2+1;
+/*****s1: the eigenvalue of the GLV map on E[r] ************
+******s2: the eigenvalue of the GLV map on E[x^2+1]********
+******s: the eigenvalue of the GLV map on E[(x^2+1)*r]*******/
+s1:=x^5;
+s2:=x;
+A:=[s1,s2];B:=[r,x^2+1];
+s:=CRT(A,B);
+n:=x^2+1;
+VectorG1(n,s);
+
+
+printf("BW14-382:\n");
+x:=2565121;
+r:=x^12-x^10+x^8-x^6+x^4-x^2+1;
+
+/*****s1: the eigenvalue of the GLV map on E[r] ************
+******s2: the eigenvalue of the GLV map on E[x^2+1]********
+******s: the eigenvalue of the GLV map on E[(x^2+1)*r]*******/
+s1:=-x^7;
+s2:=-x;
+A:=[s1,s2];B:=[r,x^2+1];
+s:=CRT(A,B);
+n:=x^2+1;
+VectorG1(n,s);
+
+printf("BW14-351:\n");
+x:=-4214720;
+r:=x^12 + x^11 - x^9 - x^8 + x^6 - x^4 - x^3 + x + 1;
+
+/*****s1: the eigenvalue of the GLV map on E[r] ************
+******s2: the eigenvalue of the GLV map on E[x^2-x+1]********
+******s3: the eigenvalue of the GLV map on E[x^2+x+1]********
+******s: the eigenvalue of the GLV map on E(Fp)*******/
+s1:=-x^7;
+s2:=x-1;
+s3:=x;
+A:=[s1,s2,s3];B:=[r,x^2-x+1,x^2+x+1];
+s:=CRT(A,B);s;
+n:=(x^2-x+1)*(x^2+x+1);
+VectorG1(n,s);

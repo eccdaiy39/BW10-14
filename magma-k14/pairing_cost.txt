@@ -1,0 +1,200 @@
+/*************************************************************************************
+* Revisiting Pairing-friendly Curves with Embedding  Degrees 10 and 14.
+*
+*  This code is used to count the cost of pairing computation on different pairing-
+*  friendly curves.
+*  m_tilde: multiplication in F_{p^{k/2}}, m_tilde_u: multiplication in F_{p^{k/2}} without reduction,
+*  s_tilde: squaringin in F_{p^{k/2}},     s_tilde_u: squaringin in F_{p^{k/2}} without reduction,
+*  m_xi : multiplication  by xi, m_a' : multiplication  by a',
+*  r_tilde: redcution in F_{p^{k/2}}, a_tilde: addition in F_{p^{k/2}}.
+*
+**************************************************************************************/ 
+//[m_tilde, m_tilde_u, m_xi, s_tilde, s_tilde_u, r_tilde, a_tilde]
+M:=[0,3,2,0,0,2,8];
+S:=[2,0,2,0,0,0,5];
+Sc:=[1,0,0,1,0,0,2];
+I:=[2,0,1,2,0,0,1];
+
+ML_cost:=function(nbits,hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi, j,k)
+    if j eq 0 then 
+        //[M, S, m_tilde, m_tilde_u, m_xi, s_tilde, s_tilde_u, r_tilde, a_tilde, m, mu, s,su,a,r]
+        SDBL:=[1,1,5,1,1,3,1,1,13,3*k div 2,0,0,0,1,0];
+        SADD:=[1,0,6,4,1,3,0,2,12,3*k div 2,0,0,0,0,0];
+    else
+         SDBL:=[1,1,5,0,2,5,0,0,9,3*k div 2,0,0,0,0,0];
+         SADD:=[1,0,6,6,2,3,0,3,10,3*k div 2,0,0,0,0,0];
+    end if;
+ sum:=[];
+  /*the cost of Line 1-9 in Alg.2 */  
+ for i:=1 to #SDBL do
+     Append(~sum, SDBL[i]*(nbits-1)+(hw-1)*SADD[i]);
+ end for;
+/*we ignore the cost of m_a' on the Miller loop
+on curves with j(E)=1728. Here we add the cost.*/
+if j eq 1728 then
+   sum[14]:=sum[14]+10*(nbits-1);
+end if;
+
+ /*the cost of Line 10-16 in Alg.2 */  
+ sum[1]:=sum[1]+2*(hw-1)+(nbits-1);
+ sum[2]:=sum[2]+(nbits-1);
+ sum[10]:=sum[10]+(k-2);
+
+/*it requires 2M+f+a_tilda on curves with j(E)=1728*/
+ if j eq 1728 then 
+    sum[1]:=sum[1]+2;
+    sum[10]:=sum[10]+(k-2);
+    sum[14]:=sum[14]+(k div 2);
+end if;
+
+/* operations in F_{p^{k/2}}*/
+ for i:=1 to #M do
+     sum[i+2]:=sum[i+2]+M[i]*sum[1]+S[i]*sum[2];
+end for;
+sum[1]:=0;
+sum[2]:=0;
+
+/* operations in F_p*/
+ for i:=1 to #m_tilde do
+     sum[i+9]:=sum[i+9]+m_tilde[i]*sum[3]+m_tilde_u[i]*sum[4]+m_xi[i]*sum[5]+s_tilde[i]*sum[6]+s_tilde_u[i]*sum[7];
+end for;
+sum[15]:=sum[15]+(k div 2)*sum[8];
+sum[14]:=sum[14]+(k div 2)*sum[9];
+sum[11]:=sum[11]+sum[10];
+sum[15]:=sum[15]+sum[10];
+sum[13]:=sum[13]+sum[12];
+sum[15]:=sum[15]+sum[12];
+
+sum[3]:=0;
+sum[4]:=0;
+sum[5]:=0;
+sum[6]:=0;
+sum[7]:=0;
+sum[8]:=0;
+sum[9]:=0;
+sum[10]:=0;
+sum[12]:=0;
+ return sum;
+end function;
+
+FE_cost:=function(nbits,hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi, k, n1, n2, n3, n4)
+a:=n1*(hw-1)+n2+3;
+b:=n1*(nbits-1)+n3;
+c:=n4+2;
+sum:=I;
+for i:=1 to 6 do
+    Append(~sum, 0);
+end for;
+sum[2]:=sum[2]+3*a;
+sum[3]:=sum[3]+2*a;
+sum[6]:=sum[6]+2*a;
+sum[7]:=sum[7]+8*a;
+
+sum[1]:=sum[1]+b;
+sum[4]:=sum[4]+b;
+sum[7]:=sum[7]+2*b;
+
+sum[8]:=sum[8]+(k-2)*c;
+if k eq 10 then 
+sum[1]:=sum[1]+2;sum[8]:=sum[8]+22;
+elif k eq 14 then 
+sum[1]:=sum[1]+3;sum[8]:=sum[8]+38;
+end if;
+for i:=1 to #m_tilde do
+     sum[i+7]:=sum[i+7]+m_tilde[i]*sum[1]+m_tilde_u[i]*sum[2]+m_xi[i]*sum[3]+s_tilde[i]*sum[4]+s_tilde_u[i]*sum[5];
+end for;
+sum[12]:=sum[12]+(k div 2)*sum[7];
+sum[13]:=sum[13]+(k div 2)*sum[6];
+sum[9]:=sum[8]+sum[9];
+sum[13]:=sum[8]+sum[13];
+sum[11]:=sum[10]+sum[11];
+sum[13]:=sum[10]+sum[13];
+ return sum;
+end function;
+
+printf("BW10-480:\n");
+m_tilde:=[0,15,0,0,122, 5];
+s_tilde:=[0,7,0,8,83, 5];
+m_tilde_u:=[0,15,0,0,122, 0];
+s_tilde_u:=[0,7,0,8,83, 0];
+m_xi:=[0,0,0,0,5,0];
+nbits:=41;
+hw:=6;
+j:=1728;
+k:=10;
+n1:=10;n2:=6;n3:=0;n4:=3;
+a:=ML_cost(nbits,hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi, j, k);
+b:=FE_cost(nbits,hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi,k, n1, n2, n3, n4);
+printf "the cost of ML on BW10-480 is %om_u + %os_u + %oa + %or.\n", a[11],a[13], a[14], a[15];
+printf "the cost of FE on BW10-480 is i+%om_u + %os_u + %oa + %or.\n", b[9],b[11], b[12], b[13];
+printf "the cost of ML+FE on BW10-480 is i+%om_u + %os_u + %oa + %or.\n", a[11]+b[9],a[13]+b[11], a[14]+b[12], a[15]+b[13];
+
+printf("BW10-511:\n");
+m_tilde:=[0,15,0,0,98, 5];
+s_tilde:=[0,7,0,8,59, 5];
+m_tilde_u:=[0,15,0,0,98, 0];
+s_tilde_u:=[0,7,0,8,59, 0];
+m_xi:=[0,0,0,0,2,0];
+nbits:=33;
+hw:=4;
+n1:=14;n2:=9;n3:=1;n4:=4;
+j:=0;
+k:=10;
+a:=ML_cost(nbits,hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi, j, k);
+b:=FE_cost(nbits,hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi,k, n1, n2, n3, n4);
+printf "the cost of ML on BW10-511 is %om_u + %os_u + %oa + %or.\n", a[11],a[13], a[14], a[15];
+printf "the cost of FE on BW10-511 is i+%om_u + %os_u + %oa + %or.\n", b[9],b[11], b[12], b[13];
+printf "the cost of ML+FE on BW10-511 is i+%om_u + %os_u + %oa + %or.\n", a[11]+b[9],a[13]+b[11], a[14]+b[12], a[15]+b[13];
+
+printf("BW10-512:\n");
+m_tilde:=[0,15,0,0,122, 5];
+s_tilde:=[0,7,0,8,83, 5];
+m_tilde_u:=[0,15,0,0,122, 0];
+s_tilde_u:=[0,7,0,8,83, 0];
+m_xi:=[0,0,0,0,2,0];
+nbits:=37;
+hw:=6;
+j:=1728;
+k:=10;
+n1:=12;n2:=7;n3:=1;n4:=4;
+a:=ML_cost(nbits,hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi, j, k);
+b:=FE_cost(nbits,hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi,k, n1, n2, n3, n4);
+printf "the cost of ML on BW10-512 is %om_u + %os_u + %oa + %or.\n", a[11],a[13], a[14], a[15];
+printf "the cost of FE on BW10-512 is i+%om_u + %os_u + %oa + %or.\n", b[9],b[11], b[12], b[13];
+printf "the cost of ML+FE on BW10-512 is i+%om_u + %os_u + %oa + %or.\n", a[11]+b[9],a[13]+b[11], a[14]+b[12], a[15]+b[13];
+
+
+printf("BW14-351:\n");
+m_tilde:=[0,24,0,0,162, 7];
+m_tilde_u:=[0,24,0,0,162, 0];
+m_xi:=[0,0,0,0,1,0];
+s_tilde:=[0,9,0,15,109, 7];
+s_tilde_u:=[0,9,0,15,109, 0];
+n1:=14;n2:=12;n3:=0;n4:=6;
+j:=0;k:=14;
+nbits:=23;
+hw:=4;
+a:=ML_cost(nbits, hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi, j,k);
+b:=FE_cost(nbits,hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi,k, n1, n2, n3, n4);
+printf "the cost of ML on BW14-351 is %om_u + %os_u + %oa + %or.\n", a[11],a[13], a[14], a[15];
+printf "the cost of FE on BW14-351 is i+%om_u + %os_u + %oa + %or.\n", b[9],b[11], b[12], b[13];
+printf "the cost of ML+FE on BW14-351 is i+%om_u + %os_u + %oa + %or.\n", a[11]+b[9],a[13]+b[11], a[14]+b[12], a[15]+b[13];
+
+printf("BW14-382:\n");
+m_tilde:=[0,24,0,0,210, 7];
+s_tilde:=[0,9,0,15,157, 7];
+m_tilde_u:=[0,24,0,0,210, 0];
+s_tilde_u:=[0,9,0,15,157, 0];
+m_xi:=[0,0,0,0,5,0];
+nbits:=22;
+hw:=6;
+n1:=16;n2:=7;n3:=1;n4:=4;
+j:=1728;
+k:=14;
+a:=ML_cost(nbits, hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi, j,k);
+b:=FE_cost(nbits,hw, m_tilde, s_tilde, m_tilde_u, s_tilde_u,m_xi,k, n1, n2, n3, n4);
+printf "the cost of ML on BW14-382 is %om_u + %os_u + %oa + %or.\n", a[11],a[13], a[14], a[15];
+printf "the cost of FE on BW14-382 is i+%om_u + %os_u + %oa + %or.\n", b[9],b[11], b[12], b[13];
+printf "the cost of ML+FE on BW14-382 is i+%om_u + %os_u + %oa + %or.\n", a[11]+b[9],a[13]+b[11], a[14]+b[12], a[15]+b[13];
+
+

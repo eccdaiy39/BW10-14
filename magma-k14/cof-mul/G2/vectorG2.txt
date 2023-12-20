@@ -1,0 +1,144 @@
+//*VectorG2 function is used for G2 cofactor multiplication*//
+function VectorG2(cof2,s,k)
+    u:=2*EulerPhi(k)-1;
+    B:=RMatrixSpace(Integers(),u,u)!0;
+    B[1][1]:=cof2;
+    for i:=2 to u do
+         B[i][1]:=-s^(i-1) mod (cof2);B[i][i]:=1;
+    end for;
+    L:= LatticeWithBasis(B);
+    h:=ShortestVector(L);
+    return h;
+end function;
+
+//*************************************Curve parmamters*************************//
+
+printf("BW10-512:\n");
+x:=2^36+2^35+2^32+2^17+2^3+1;
+r:=x^8-x^6+x^4-x^2+1;
+t:=x^2+1;
+p:=(x^14-2*x^12+x^10+x^4+2*x^2+1) div 4;
+f:=2^4*3^5*5*7^2*137^5*419*617*1531^5*3119*41081*88789*170641^5;
+Fp:=GF(p);
+F2<s>:=ExtensionField<Fp,s|s^2+17>;
+F5<u>:=ExtensionField<Fp,u|u^5+17>;
+F10<v>:=ExtensionField<F5,v|v^2-u>;
+E:=EllipticCurve([F10|1,0]);
+E1:=EllipticCurve([Fp|1,0]);
+E2:=EllipticCurve([F2|1,0]);
+Et:=EllipticCurve([F5|1/u^2,0]);
+W:=6769328813942079654333316763935716746190825161292163458641640393244403681016084552862596353325722753947259613383148378880004522927957911129882072346161480;
+cof2:=#Et*#E1 div(r*#E2);
+m2:=1;
+n2:=cof2 div (m2^2);
+P<w>:=PolynomialRing(Integers());
+g:=P!(w^2-t*w+p); 
+q:=P!CyclotomicPolynomial(10);
+R:=quo<P|g>;
+h:=R!q;
+H:=Coefficients(h);
+Solution(H[2],-H[1],n2*r);
+a:=Solution(H[2],-H[1],n2*r);
+_,c,_:=XGCD(f, n2*r);
+b:=(-(2*a-t))*c mod (n2*r);
+s:=(a*b);
+k:=10;
+VectorG2(n2,s,k);
+
+
+printf("BW10-480:\n");
+x:=1168231415840;
+r:=x^8-x^6+x^4-x^2+1;
+t:=-x^6+x^4-x^2+2;
+p:=(x^12-x^10+x^8-5*x^6+5*x^4-4*x^2+4) div 4;
+f:=2^15*3^2*5^3*7*73^3*79*139^3*719567^3*14787739441*18543355807;
+W:=1382794679555104006129217786771285264926865858910740738919489217827908800622587\
+397812004703919224203000735240602307420555918309900240;
+Fp:=GF(p);
+F2<s>:=ExtensionField<Fp,s|s^2+11>;
+F5<u>:=ExtensionField<Fp,u|u^5+11>;
+F10<v>:=ExtensionField<F5,v|v^2-u>;
+E:=EllipticCurve([F10|1,0]);
+E1:=EllipticCurve([Fp|1,0]);
+E2:=EllipticCurve([F2|1,0]);
+Et:=EllipticCurve([F5|1/u^2,0]);
+cof2:=#Et*#E1 div(r*#E2);
+m2:=19;
+n2:=cof2 div (m2^2);
+P<w>:=PolynomialRing(Integers());
+g:=P!(w^2-t*w+p); 
+q:=P!CyclotomicPolynomial(10);
+R:=quo<P|g>;
+h:=R!q;
+H:=Coefficients(h);
+a:=Solution(H[2],-H[1],n2*r);
+_,c,_:=XGCD(f, n2*r);
+b:=((2*a-t))*c mod (n2*r);
+s:=(a*b);
+k:=10;
+VectorG2(n2,s,k);
+
+
+printf("BW10-511:\n");
+
+x:=2^7+2^13+2^26-2^32;  
+r:=x^8+x^7-x^5-x^4-x^3+x+1;
+t:=x^3+1;
+p:=(x^3-1)^2*(x^10-x^5+1)div 3 +x^3;
+f:=3*5*7*19*61*74172809*103039397557*18033575676307*13953720972139393*290785498341800690827267;
+Fp:=GF(p);
+F2<s>:=ExtensionField<Fp,s|s^2+4>;
+F5<u>:=ExtensionField<Fp,u|u^5+4>;
+F10<v>:=ExtensionField<F5,v|v^2-u>;
+E:=EllipticCurve([F10|0,-3]);
+E1:=EllipticCurve([Fp|0,-3]);
+E2:=EllipticCurve([F2|0,-3]);
+Et:=EllipticCurve([F5|0,-3/u^3]);
+cof2:=#Et*#E1 div(r*#E2);
+m2:=5;
+assert cof2 mod m2^2 eq 0 and (p^5-1) mod m2 eq 0;
+n2:=cof2 div m2^2;
+P<w>:=PolynomialRing(Integers());
+g:=P!(w^2-t*w+p); 
+q:=P!CyclotomicPolynomial(10);
+R:=quo<P|g>;
+h:=R!q;
+H:=Coefficients(h);
+a:=Solution(H[2],-H[1],n2*r);
+_,c,_:=XGCD(2*f, n2*r);
+b:=(-f-(2*a-t))*c mod (n2*r);
+s:=(a*b);
+k:=10;
+n2:=n2*m2^2;
+VectorG2(n2,s,k);
+
+
+printf("BW10-340:\n");
+x:=2^2+2^7+2^9-2^13+2^19+2^21;
+r:=x^12 + x^11 - x^9 - x^8 + x^6 - x^4 - x^3 + x + 1;
+t:=x^8-x+1;
+p:=(x-1)^2*(x^14-x^7+1) div 3+x^15;
+f:=3*53*331*727*14584517*1301753080662918159576503854656309391;
+Fp:=GF(p);
+F2<s>:=ExtensionField<Fp,s|s^2+4>;
+F7<u>:=ExtensionField<Fp,u|u^7+4>;
+F14<v>:=ExtensionField<F7,v|v^2-u>;
+E:=EllipticCurve([F14|0,2]);
+E1:=EllipticCurve([Fp|0,2]);
+E2:=EllipticCurve([F2|0,2]);
+Et:=EllipticCurve([F7|0, 2/u^3]);
+cof2:=#Et*#E1 div(r*#E2);
+m2:=1;
+n2:=cof2 div m2^2;
+P<w>:=PolynomialRing(Integers());
+g:=P!(w^2-t*w+p); 
+q:=P!CyclotomicPolynomial(14);
+R:=quo<P|g>;
+h:=R!q;
+H:=Coefficients(h);
+a:=Solution(H[2],-H[1],cof2*r);
+_,c,_:=XGCD(2*f, n2*r);
+b:=(-f-(2*a-t))*c mod (n2*r);
+s:=(a*b);
+k:=14;
+VectorG2(n2,s,k)；

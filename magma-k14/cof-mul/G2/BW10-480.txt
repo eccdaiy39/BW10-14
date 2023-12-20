@@ -1,0 +1,59 @@
+x:=1168231415840;
+r:=x^8-x^6+x^4-x^2+1;
+t:=-x^6+x^4-x^2+2;
+p:=(x^12-x^10+x^8-5*x^6+5*x^4-4*x^2+4) div 4;
+f:=2^15*3^2*5^3*7*73^3*79*139^3*719567^3*14787739441*18543355807;
+W:=1382794679555104006129217786771285264926865858910740738919489217827908800622587\
+397812004703919224203000735240602307420555918309900240;
+
+Fp:=GF(p);
+F2<s>:=ExtensionField<Fp,s|s^2+11>;
+F5<u>:=ExtensionField<Fp,u|u^5+11>;
+F10<v>:=ExtensionField<F5,v|v^2-u>;
+E:=EllipticCurve([F10|1,0]);
+E1:=EllipticCurve([Fp|1,0]);
+E2:=EllipticCurve([F2|1,0]);
+Et:=EllipticCurve([F5|u^2,0]);
+
+/*aut1 is the untwitsting-Frobenius-twisting map*/
+function aut1(Q,i)
+        R:=Q;
+        R:=E![1/u*R[1],R[2]/(u*v),1];
+        R:=E![Frobenius(R[1],Fp,i),Frobenius(R[2],Fp,i),1];
+        R:=Et![u*R[1],(u*v)*R[2],1];
+        return R;
+end function;
+
+/*aut2 is the untwitsting-Frobenius-GLV-twisting map*/
+function aut2(Q,i)
+        R:=Q;
+        R:=E![1/u*R[1],R[2]/(u*v),1];
+        R:=E![Frobenius(R[1],Fp,i),Frobenius(R[2],Fp,i),1];
+        R:=E![(-1)^i*R[1], W^i*R[2],1];
+        R:=Et![u*R[1],(u*v)*R[2],1];
+        return R;
+end function;
+/*short vector*/
+h:=[1862582525202479451291639091099461277877009907200,
+    1087963710268067526030469324664939393420065977494210202615840,
+    -1862582525202479451291639091099461277877009907199,
+    -2175927420536135052060938649329878786840131954987252173815840,
+    931291262601239725645818521976249922290252774399,
+    1087963710268067526030470121845403789344682979205162903552000,
+    682382320477765501452801];
+
+/*test*/
+Q:=Random(Et);
+Q:=aut1(Q,5)-Q;
+Q:=aut1(Q,1)+Q;
+Q:=19*Q;
+H0:=h[1]*Q;H1:=h[2]*Q;H2:=h[3]*Q;H3:=h[4]*Q;H4:=h[5]*Q;H5:=h[6]*Q;H6:=h[7]*Q;
+R:=H0+aut2(H1,1)+aut2(H2,2)+aut2(H3,3)+aut2(H4,4)+aut2(H5,5)+aut2(H6,6);
+R2:=r*R;
+
+/*checking that R\in G2 and R is not the identity point*/
+if R[3] ne 0 and R2[3] eq 0 then
+  printf("G2 cofactor multiplication is correct!\n");
+else
+   printf("G2 cofactor multiplication is ERROR!\n");
+end if;
